@@ -1,0 +1,23 @@
+{% extends "spam/base.html" %}
+
+{% block title %}Сообщения{% endblock %}
+
+{% block content %}
+<h2>Сообщения</h2>
+<a href="{% url 'spam:message_create' %}">Добавить сообщение</a>
+<table>
+    <tr>
+        <th> Тема сообщения </th>
+        <th> Тело сообщения </th>
+        <th> Подробнее о сообщении</th>
+    </tr>
+        {% if user == message.owner or user.is_staff or perms.spam.can_view_all_messages %}
+            <tr>
+                <td>{{ message.subject }}</td>
+                <td>{{ message.body|truncatewords:100 }}</td>
+                <td><a class="btn btn-outline-primary" href="{% url 'spam:message_list' %}">Назад</a></td>
+            </tr>
+        {% endif %}
+
+</table>
+{% endblock %}>

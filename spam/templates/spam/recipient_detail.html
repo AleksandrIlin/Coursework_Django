@@ -1,0 +1,51 @@
+{% extends "spam/base.html" %}
+{% block title %}Получатель рассылки{% endblock %}
+
+{% block content %}
+<h2>Получатель рассылки</h2>
+<table>
+    <div class="container">
+      <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
+        <div class="col">
+          <div class="p-3 border bg-light">Email</div>
+        </div>
+        <div class="col">
+          <div class="p-3 border bg-light">Ф. И. О.</div>
+        </div>
+        <div class="col">
+          <div class="p-3 border bg-light">Комментарий</div>
+        </div>
+        <div class="col">
+          <div class="p-3 border bg-light">Редактировать</div>
+        </div>
+        <div class="col">
+          <div class="p-3 border bg-light">Удалить</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
+        <div class="col">
+          <div class="p-3 border bg-light">{{ recipient.email }}</div>
+        </div>
+        <div class="col">
+          <div class="p-3 border bg-light">{{ recipient.full_name }}</div>
+        </div>
+        <div class="col">
+          <div class="p-3 border bg-light">{{ recipient.comment }}</div>
+        </div>
+        {% if user == recipient.owner or user.is_staff or perms.user.delete_recipient %}
+        <div class="col">
+          <div class="p-3 border bg-light"><a href="{% url 'spam:recipient_update' recipient.id %}">Редактировать</a></div>
+        </div>
+        <div class="col">
+          <div class="p-3 border bg-light"><a href="{% url 'spam:recipient_delete' recipient.id %}">Удалить</a></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+</table>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'spam/base.html' %}
+{% block title %} Блокировка рассылки {% endblock %}
+{% block content %}
+<div class="container mt-5">
+
+    <h1 class="mb-4">
+        {% if mailing.is_blocked %}
+            Разблокировать рассылку
+        {% else %}
+            Заблокировать рассылку
+        {% endif %}
+    </h1>
+    <p>Вы уверены, что хотите {% if mailing.is_blocked %}разблокировать{% else %}
+        заблокировать{% endif %} рассылку "{{ mailing.id }}"?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="checkbox" name="is_blocked" id="id_is_blocked" {% if mailing.is_blocked %}checked{% endif %}>
+        <label for="id_is_blocked">
+            {% if mailing.is_blocked %}
+                Разблокировать рассылку
+            {% else %}
+                Заблокировать рассылку
+            {% endif %}
+        </label>
+        <button type="submit" class="btn btn-primary">
+            {% if mailing.is_blocked %}
+                Разблокировать
+            {% else %}
+                Заблокировать
+            {% endif %}
+        </button>
+        <a href="{% url 'spam:mailing_list' %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}
