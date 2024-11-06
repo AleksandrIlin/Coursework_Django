@@ -7,12 +7,12 @@ from spam.forms import MailingForm, MessageForm, RecipientForm
 from spam.models import Mailing, MailingAttempt, Message, Recipient, UserMailingStatistics
 from spam.servicies import get_mailing_from_cache, get_message_from_cache, get_recipient_from_cache
 from utils.logger import setup_logging
+from django.core.exceptions import PermissionDenied
 
 setup_logging()
 
 
 class HomePageView(View):
-    """"""
     template_name = "spam/home.html"
 
     def get(self, request):
@@ -29,14 +29,18 @@ class HomePageView(View):
         return render(request, self.template_name, context)
 
 
-class MailingListView(ListView):
+class MailingListView(LoginRequiredMixin, ListView):
     model = Mailing
     form_class = MailingForm
     template_name = "spam/mailing_list.html"
     context_object_name = "mailing_list"
 
     def get_queryset(self):
-        return get_mailing_from_cache()
+        if self.request.user.is_superuser or self.request.user.has_permission('can_view_all_mailings'):
+            return get_mailing_from_cache()
+        else:
+            user = self.request.user
+            return Mailing.objects.filter(owner=user)
 
 
 class MailingCreateView(View):
@@ -48,9 +52,9 @@ class MailingCreateView(View):
         form = MailingForm(request.POST)
         if form.is_valid():
             mailing = form.save(commit=False)
-            mailing.owner = request.user  # Установите владельца как текущего пользователя
+            mailing.owner = request.user
             mailing.save()
-            return redirect("spam:mailing_list")  # Замените на имя URL для списка рассылок
+            return redirect("spam:mailing_list")
         return render(request, "spam/mailing_form.html", {"form": form})
 
 
@@ -60,9 +64,18 @@ class MailingUpdateView(UpdateView):
     template_name = "spam/mailing_form.html"
     success_url = reverse_lazy("spam:mailing_list")
 
+    def get_queryset(self):
+        return Mailing.objects.filter(owner=self.request.user)
+
+    def get_object(self, queryset=None):
+        try:
+            return super().get_object(queryset)
+        except Mailing.DoesNotExist:
+            raise PermissionDenied("У Вас нет прав для редактирования этого сообщения.")
+
 
 class MailingDeleteView(LoginRequiredMixin, DeleteView):
-    model = Mailing  # Используйте модель Mailing
+    model = Mailing
     template_name = "spam/mailing_delete.html"
     success_url = reverse_lazy("spam:mailing_list")
 
@@ -112,7 +125,11 @@ class MessageListView(ListView):
     context_object_name = "message_list"
 
     def get_queryset(self):
-        return get_message_from_cache()
+        if self.request.user.is_superuser or self.request.user.has_permission('can_view_all_messages'):
+            return get_message_from_cache()
+        else:
+            user = self.request.user
+            return Mailing.objects.filter(owner=user)
 
 
 class MessageCreateView(CreateView):
@@ -122,12 +139,25 @@ class MessageCreateView(CreateView):
     context_object_name = "message_from"
     success_url = reverse_lazy("spam:message_list")
 
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
-class MessageUpdateView(UpdateView):
+
+class MessageUpdateView(LoginRequiredMixin, UpdateView):
     model = Message
     fields = ["subject", "body"]
     template_name = "spam/message_from.html"
     success_url = reverse_lazy("spam:message_list")
+
+    def get_queryset(self):
+        return Message.objects.filter(owner=self.request.user)
+
+    def get_object(self, queryset=None):
+        try:
+            return super().get_object(queryset)
+        except Message.DoesNotExist:
+            raise PermissionDenied("У Вас нет прав для редактирования этого сообщения.")
 
 
 class MessageDetailView(DetailView):
@@ -165,7 +195,11 @@ class RecipientListView(ListView):
     context_object_name = "recipient_list"
 
     def get_queryset(self):
-        return get_recipient_from_cache()
+        if self.request.user.is_superuser or self.request.user.has_permission('can_view_all_recipients'):
+            return get_recipient_from_cache()
+        else:
+            user = self.request.user
+            return Mailing.objects.filter(owner=user)
 
 
 class RecipientCreateView(CreateView):
@@ -175,12 +209,25 @@ class RecipientCreateView(CreateView):
     context_object_name = "form_recipient"
     success_url = reverse_lazy("spam:recipient_list")
 
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
-class RecipientUpdateView(UpdateView):
+
+class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipient
     fields = ["email", "full_name", "comment"]
     template_name = "spam/recipient_form.html"
     success_url = reverse_lazy("spam:recipient_list")
+
+    def get_queryset(self):
+        return Recipient.objects.filter(owner=self.request.user)
+
+    def get_object(self, queryset=None):
+        try:
+            return super().get_object(queryset)
+        except Recipient.DoesNotExist:
+            raise PermissionDenied("У Вас нет прав для редактирования этого получателя.")
 
 
 class RecipientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
