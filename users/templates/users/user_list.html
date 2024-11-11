@@ -1,0 +1,49 @@
+{% extends "spam/base.html" %}
+{% load my_tags %}
+{% block title %}Получатель рассылки{% endblock %}
+{% block content %}
+<h2>Список пользоваелей</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Ф. И. О.</th>
+            <th>Nikcname</th>
+            <th>Телефон</th>
+            <th>Аватар</th>
+            <th>Страна</th>
+            <th>Статус</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in user_list %}
+            {% if perms.users.can_manage_users and not user.is_superuser %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.first_name }} {{user.last_name}}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.phone_number }}</td>
+                <td><img src="{{ user.avatar | media_filter }}" class="card-img-top" alt="avatar"
+                         style="max-width: 150px; max-height: 150px; width: auto; height: auto;"></td>
+                <td>{{ user.country }}</td>
+                <td>
+                    {% if user.is_blocked %}
+                        Заблокировано
+                    {% else %}
+                        Разблокировано
+                    {% endif %}
+                </td>
+                {% if perms.users.can_block_users or user.is_staff %}
+                {% if user.is_blocked %}
+                    <td><a href="{% url 'users:user_block' user.id %}">Разблокировать пользователя</a></td>
+                {% else %}
+                    <td><a href="{% url 'users:user_block' user.id %}">Заблокировать пользователя</a></td>
+                {% endif %}
+                {% endif %}
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

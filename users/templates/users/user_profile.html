@@ -1,0 +1,23 @@
+{% extends 'spam/base.html' %}
+{% load my_tags %}
+{% block content %}
+<h1>Детали пользователя: {{ user.username }}</h1>
+
+<div class="user-details">
+    <img src="{{ user.avatar | media_filter }}" class="card-img-top" alt="avatar"
+         style="max-width: 150px; max-height: 150px; width: auto; height: auto;">
+
+    <ul>
+    <li><strong>Email:</strong> {{ user.email }}</li>
+    <li><strong>Имя:</strong> {{ user.first_name }}</li>
+    <li><strong>Номер телефона:</strong> {{ user.phone_number }}</li>
+    <li><strong>Страна:</strong> {{ user.country }}</li>
+    </ul>
+    <div class="card">
+        <div class="card-body">
+            <a class="btn btn-primary" href="{% url 'users:change_password' %}">Изменить пароль</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

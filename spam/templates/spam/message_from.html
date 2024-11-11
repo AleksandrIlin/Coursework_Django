@@ -1,0 +1,13 @@
+{% extends "spam/base.html" %}
+
+{% block title %}{{ " Добавление сообщения " }}{% endblock %}
+
+{% block content %}
+<h2>{{ "Редактирование сообщения" }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+</form>
+<a href="{% url 'spam:message_list' %}">Назад к списку сообщений</a>
+{% endblock %}

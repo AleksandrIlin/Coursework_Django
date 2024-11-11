@@ -1,0 +1,14 @@
+{% extends "spam/base.html" %}
+
+{% block title %}Начало рассылки{% endblock %}
+
+{% block content %}
+    <h1>Начать рассылку</h1>
+    <p>Вы уверены, что хотите начать рассылку "{{ mailing.object.id }}"?</p>
+
+    <form method="post" action="{% url 'spam:mailing_start' object.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Начать рассылку</button>
+    </form>
+    <a href="{% url 'spam:mailing_list' %}">Назад к списку рассылок</a>
+{% endblock %}

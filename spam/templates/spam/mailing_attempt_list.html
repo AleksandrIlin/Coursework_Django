@@ -1,0 +1,52 @@
+{% extends "spam/base.html" %}
+
+{% block title %}Список попыток рассылок{% endblock %}
+
+{% block content %}
+<h2>Список попыток рассылок</h2>
+
+<form action="{% url 'spam:clear_mailing_attempts' %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Очистить список рассылок</button>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Рассылка</th>
+            <th>Время попытки</th>
+            <th>Статус</th>
+            <th>Ответ сервера</th>
+            <th>Сообщение</th>
+            <th>Получатели</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        {% for attempt in mailing_attempt_list %}
+            {% if user == attempt.owner or user.is_staff or perms.spam.can_view_all_mailings_attempts %}
+                <tr>
+                    <td>
+                        <a href="{% url 'spam:mailing_detail' attempt.mailing.id %}">
+                             Рассылка №: {{ attempt.mailing.id }}
+                        </a>
+                    </td>
+                    <td>{{ attempt.attempt_datetime|date:"d.m.Y H:i:s" }}</td>
+                    <td>{{ attempt.status }}</td>
+                    <td>{{ attempt.server_response|default:"Нет ответа" }}</td>
+                    <td>{{ attempt.mailing.message.body }}</td>
+                    <td>
+                    {% for recipient in attempt.mailing.recipients.all %}
+                        {{ recipient.email }}<br>
+                    {% endfor %}
+                    </td>
+                </tr>
+            {% endif %}
+        {% empty %}
+            <tr>
+                <td colspan="6">Нет записей о попытках рассылки.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
